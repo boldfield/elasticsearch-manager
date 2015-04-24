@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'elasticsearch/manager/cmd'
+
+include Elasticsearch::Manager
+
+def colorize(text, color_code)
+  "#{color_code}#{text}e[0m"
+end
+
+def green(text); colorize(text, "e[32m"); end
+def yellow(text); colorize(text, "e[43m"); end
+def red(text); colorize(text, "e[31m"); end
+
+options = {}
+
+opt_parser = OptionParser.new do |opts|
+  opts.banner = <<EOC
+elasticsearch-manager [options] <command>
+  
+Available commands:
+  rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time.
+  status             -- Check the current state of the cluster (green/yellow/red)
+
+EOC
+
+  options[:hostname] = 'localhost'
+  opts.on('-c HOSTNAME', '--cluster-hostname HOSTNAME', 'Hostname used to address the cluster [default: localhost]') do |h|
+    options[:hostname] = h
+  end
+
+  options[:port] = 9200
+  opts.on('-p PORT', '--port PORT', 'Port on which to address the cluster [default: 9200]') do |p|
+    options[:port] = p
+  end
+end
+
+opt_parser.parse!
+
+cmd = ARGV[0]
+case cmd
+when 'rolling-restart'
+  CMD.rolling_restart(options)
+when 'status'
+  CMD.status(options)
+else
+  puts "Unknown command: #{cmd}\n" 
+  puts opt_parser
+end
+

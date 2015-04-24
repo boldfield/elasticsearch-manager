@@ -1,0 +1,5 @@
+require_relative 'model/health'
+require_relative 'model/node'
+require_relative 'model/routing_nodes'
+require_relative 'model/state'
+require_relative 'model/shard'

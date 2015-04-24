@@ -1,0 +1,79 @@
+PATH
+  remote: .
+  specs:
+    elasticsearch-manager (0.1.0)
+      colorize (~> 0.7.7)
+      json (~> 1.8)
+      net-ssh (~> 2.9.2)
+      rack (~> 1.6.0)
+      representable (~> 2.1)
+      rest-client (~> 1.8)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    addressable (2.3.8)
+    colorize (0.7.7)
+    crack (0.4.2)
+      safe_yaml (~> 1.0.0)
+    diff-lcs (1.2.5)
+    docile (1.1.5)
+    domain_name (0.5.24)
+      unf (>= 0.0.5, < 1.0.0)
+    http-cookie (1.0.2)
+      domain_name (~> 0.5)
+    json (1.8.2)
+    mime-types (2.5)
+    mini_portile (0.6.2)
+    multi_json (1.11.0)
+    net-ssh (2.9.2)
+    netrc (0.10.3)
+    nokogiri (1.6.6.2)
+      mini_portile (~> 0.6.0)
+    rack (1.6.0)
+    rake (10.4.2)
+    representable (2.1.5)
+      multi_json
+      nokogiri
+      uber (~> 0.0.7)
+    rest-client (1.8.0)
+      http-cookie (>= 1.0.2, < 2.0)
+      mime-types (>= 1.16, < 3.0)
+      netrc (~> 0.7)
+    rspec (3.2.0)
+      rspec-core (~> 3.2.0)
+      rspec-expectations (~> 3.2.0)
+      rspec-mocks (~> 3.2.0)
+    rspec-core (3.2.3)
+      rspec-support (~> 3.2.0)
+    rspec-expectations (3.2.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.2.0)
+    rspec-mocks (3.2.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.2.0)
+    rspec-support (3.2.2)
+    safe_yaml (1.0.4)
+    simplecov (0.10.0)
+      docile (~> 1.1.0)
+      json (~> 1.8)
+      simplecov-html (~> 0.10.0)
+    simplecov-html (0.10.0)
+    uber (0.0.13)
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.7.1)
+    webmock (1.21.0)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.7)
+  elasticsearch-manager!
+  rake (~> 10.0)
+  rspec (~> 3.2)
+  simplecov (~> 0.9)
+  webmock (~> 1.21)
