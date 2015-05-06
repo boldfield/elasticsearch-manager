@@ -29,7 +29,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       expect(ssh_connection).to receive(:exec).exactly(3).times
 
-      @input << "yes\nyes\nyes\n"
+      @input << "y\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -46,7 +46,23 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost-cmd-restart-timeout', :port => '9200', :timeout => 2, :sleep_interval => 1}
 
-      @input << "yes\nyes\nyes\n"
+      @input << "y\ny\ny\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'throws node available timeout' do
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost-cmd-restart-not-available', :port => '9200', :timeout => 2, :sleep_interval => 1}
+
+      @input << "y\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -62,7 +78,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost-cmd-restart-stabilization', :port => '9200', :timeout => 3, :sleep_interval => 1}
 
-      @input << "yes\nyes\nyes\n"
+      @input << "y\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -94,7 +110,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost', :port => '9200'}
 
-      @input << "yes\nyes\nno\n"
+      @input << "y\ny\nn\n"
       @input.rewind
 
       exit_code = -1

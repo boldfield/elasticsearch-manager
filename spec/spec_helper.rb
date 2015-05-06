@@ -23,8 +23,11 @@ WebMock.disable_net_connect!(allow_localhost: false)
 DIR = File.expand_path(File.dirname(__FILE__))
 
 class RestartTimeoutRack
-  def initialize
+  def initialize(state_success_count = 10)
     @health_call_count = 0
+    @state_call_count = 0
+
+    @state_success_count = state_success_count
   end
 
   def call(env)
@@ -38,9 +41,18 @@ class RestartTimeoutRack
       end
       @health_call_count += 1
     when '/_cluster/settings'
-      ret = env['rack.input'].read
+      if env['rack.input'].read[/none/].nil?
+        ret = '{"transient":{"cluster":{"routing":{"allocation":{"enable":"all"}}}}}'
+      else
+        ret = '{"transient":{"cluster":{"routing":{"allocation":{"enable":"none"}}}}}'
+      end
     when '/_cluster/state'
-      ret = File.read(DIR + '/fixtures/state.json')
+      if @state_call_count < @state_success_count
+        ret = File.read(DIR + '/fixtures/state.json')
+      else
+        ret = File.read(DIR + '/fixtures/state-node-initializing.json')
+      end
+      @state_call_count += 1
     end
     [200, { 'Content-Type' => 'application/json' }, [ret]]
   end
@@ -164,24 +176,24 @@ RSpec.configure do |config|
 
     stub_request(:put, /localhost-route-disabled:9200\/_cluster\/settings/).
       to_return(status: 200,
-                body: '{"transient":{"cluster.routing.allocation.enable":"none"}}',
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"none"}}}}}',
                 headers: {'Content-Type' => 'application/json'})
 
     stub_request(:put, /localhost-route-enabled:9200\/_cluster\/settings/).
       to_return(status: 200,
-                body: '{"transient":{"cluster.routing.allocation.enable":"all"}}',
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"all"}}}}}',
                 headers: {'Content-Type' => 'application/json'})
 
     stub_request(:put, /localhost:9200\/_cluster\/settings/).
       with(:body => '{"transient":{"cluster.routing.allocation.enable":"none"}}').
       to_return(status: 200,
-                body: '{"transient":{"cluster.routing.allocation.enable":"none"}}',
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"none"}}}}}',
                 headers: {'Content-Type' => 'application/json'})
 
     stub_request(:put, /localhost:9200\/_cluster\/settings/).
       with(:body => '{"transient":{"cluster.routing.allocation.enable":"all"}}').
       to_return(status: 200,
-                body: '{"transient":{"cluster.routing.allocation.enable":"all"}}',
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"all"}}}}}',
                 headers: {'Content-Type' => 'application/json'})
 
 
@@ -194,6 +206,11 @@ RSpec.configure do |config|
       to_rack(RestartTimeoutRack.new)
     stub_request(:any, /localhost-cmd-restart-stabilization:9200\//).
       to_rack(RestartTimeoutRack.new)
+
+    stub_request(:any, /localhost-restart-not-available:9200\//).
+      to_rack(RestartTimeoutRack.new(1))
+    stub_request(:any, /localhost-cmd-restart-not-available:9200\//).
+      to_rack(RestartTimeoutRack.new(1))
   end
 end
 

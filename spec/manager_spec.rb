@@ -146,7 +146,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       manager = ESManager.new('localhost', '9200')
       manager.cluster_members!
 
-      @input << "yes\nyes\nyes\n"
+      @input << "y\ny\ny\n"
       @input.rewind
 
       capture_stdout do
@@ -161,11 +161,26 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
         expect(arg).to eql('sudo service elasticsearch restart')
       end
 
-      @input << "yes\nyes\nyes\n"
+      @input << "y\ny\ny\n"
       @input.rewind
 
       output = capture_stdout do
         expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::StabalizationTimeout)
+      end
+    end
+
+    it 'throws node available timeout' do
+      manager = ESManager.new('localhost-restart-not-available', 9200)
+      manager.cluster_members!
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+
+      @input << "y\ny\ny\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::NodeAvailableTimeout)
       end
     end
 
@@ -176,7 +191,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
         expect(arg).to eql('sudo service elasticsearch restart')
       end
 
-      @input << "yes\nyes\nyes\n"
+      @input << "y\ny\ny\n"
       @input.rewind
 
       output = capture_stdout do
@@ -192,7 +207,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       end
       opts = {:hostname => 'localhost', :port => '9200'}
 
-      @input << "no\n"
+      @input << "n\n"
       @input.rewind
 
       output = capture_stdout do
@@ -208,7 +223,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       end
       opts = {:hostname => 'localhost', :port => '9200'}
 
-      @input << "yes\nyes\nno\n"
+      @input << "y\ny\nn\n"
       @input.rewind
 
       output = capture_stdout do
