@@ -10,14 +10,13 @@ module Elasticsearch
       include Elasticsearch::Manager
 
       def self.rolling_restart(opts)
-        puts 'Discovering cluster members...'
         manager = _manager(opts)
         # Check that the cluster is stable?
         unless manager.cluster_stable?
           print_cluster_stable(manager)
           return 2
         end
-        puts 'Discovering cluster members...'
+        puts "Discovering cluster members...\n"
         manager.cluster_members!
         timeout = opts[:timeout] || 600
         sleep_interval = opts[:sleep_interval] || 30

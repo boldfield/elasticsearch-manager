@@ -25,14 +25,14 @@ module Elasticsearch
             end
           end
         end
-        unless highline.agree('Restarting current cluster master, continue? (yes/no) ')
+        unless highline.agree("\nRestarting current cluster master, continue? (yes/no) ")
           raise UserRequestedStop, "Stopping rolling restart at user request before restarting master node!".colorize(:red)
         end
         restart_node(@leader, timeout, sleep_interval)
       end
 
       def restart_node(node_ip, timeout, sleep_interval)
-          puts "Restarting Elasticsearch on node: #{node_ip}"
+          puts "\nRestarting Elasticsearch on node: #{node_ip}"
           raise "Could not disable shard routing prior to restarting node: #{node_ip}".colorize(:red) unless disable_routing
           
           Net::SSH.start(node_ip, ENV['USER']) do |ssh|
