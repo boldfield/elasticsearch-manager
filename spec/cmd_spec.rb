@@ -21,8 +21,8 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
   context 'restart cluster' do
     it 'does a clean restart' do
       expect(Net::SSH).to receive(:start).with('10.110.33.218', ENV['USER']).ordered
-      expect(Net::SSH).to receive(:start).with('10.110.38.153', ENV['USER']).ordered
       expect(Net::SSH).to receive(:start).with('10.110.40.133', ENV['USER']).ordered
+      expect(Net::SSH).to receive(:start).with('10.110.38.153', ENV['USER']).ordered
 
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
@@ -79,6 +79,22 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       opts = {:hostname => 'localhost', :port => '9200'}
 
       @input << "no\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'Allows user to bail at master restart' do
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "yes\nyes\nno\n"
       @input.rewind
 
       exit_code = -1

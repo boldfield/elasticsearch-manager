@@ -135,8 +135,8 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
 
     it 'does a clean restart' do
       expect(Net::SSH).to receive(:start).with('10.110.33.218', ENV['USER']).ordered
-      expect(Net::SSH).to receive(:start).with('10.110.38.153', ENV['USER']).ordered
       expect(Net::SSH).to receive(:start).with('10.110.40.133', ENV['USER']).ordered
+      expect(Net::SSH).to receive(:start).with('10.110.38.153', ENV['USER']).ordered
 
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
@@ -193,6 +193,22 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       opts = {:hostname => 'localhost', :port => '9200'}
 
       @input << "no\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::UserRequestedStop)
+      end
+    end
+
+    it 'Allows user to bail at master restart' do
+      manager = ESManager.new('localhost', 9200)
+      manager.cluster_members!
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "yes\nyes\nno\n"
       @input.rewind
 
       output = capture_stdout do
