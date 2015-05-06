@@ -2,6 +2,7 @@ require 'colorize'
 require 'net/ssh'
 
 require 'elasticsearch/manager/manager'
+require 'elasticsearch/manager/rollingrestart'
 
 
 module Elasticsearch
@@ -23,6 +24,7 @@ module Elasticsearch
         begin
           manager.rolling_restart(timeout, sleep_interval)
         rescue Exception => e
+          puts e
           return 2
         end
         puts 'Rolling restart complete.'
@@ -33,6 +35,7 @@ module Elasticsearch
         manager = _manager(opts)
         status = manager.cluster_status
         puts "The Elasticsearch cluster is currently: #{status.colorize(status.to_sym)}"
+        return 0
       end
 
       protected
@@ -41,7 +44,7 @@ module Elasticsearch
       end
 
       def self.print_cluster_stable(manager)
-        health = manager.health
+        health = manager.cluster_health
         puts 'The cluster is currently unstable! Not proceeding with rolling-restart'
         puts "\tCluster status: #{health.status.colorize(health.status.to_sym)}"
 

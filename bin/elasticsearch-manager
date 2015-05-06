@@ -45,11 +45,12 @@ opt_parser.parse!
 cmd = ARGV[0]
 case cmd
 when 'rolling-restart'
-  CMD.rolling_restart(options)
+  ec = CMD.rolling_restart(options)
 when 'status'
-  CMD.status(options)
+  ec = CMD.status(options)
 else
   puts "Unknown command: #{cmd}\n" 
   puts opt_parser
 end
 
+exit(ec)

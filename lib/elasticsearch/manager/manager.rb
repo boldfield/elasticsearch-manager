@@ -48,12 +48,12 @@ module Elasticsearch
 
       def disable_routing
         ret = @client.routing(true)
-        ret['transient']['cluster.routing.allocation.enable'] == 'none'
+        ret['transient']['cluster']['routing']['allocation']['enable'] == 'none'
       end
 
       def enable_routing
         ret = @client.routing(false)
-        ret['transient']['cluster.routing.allocation.enable'] == 'all'
+        ret['transient']['cluster']['routing']['allocation']['enable'] == 'all'
       end
     end
   end
