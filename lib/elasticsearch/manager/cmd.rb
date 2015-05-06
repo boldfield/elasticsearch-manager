@@ -20,10 +20,10 @@ module Elasticsearch
         puts 'Discovering cluster members...'
         manager.cluster_members!
         timeout = opts[:timeout] || 600
+        sleep_interval = opts[:sleep_interval] || 30
         begin
-          manager.rolling_restart(timeout)
+          manager.rolling_restart(timeout, sleep_interval)
         rescue Exception => e
-          puts e
           return 2
         end
         puts 'Rolling restart complete.'

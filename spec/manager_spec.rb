@@ -1,4 +1,6 @@
 require 'spec_helper'
+require 'stringio'
+
 require 'elasticsearch/manager'
 require 'elasticsearch/model'
 
@@ -122,6 +124,11 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
 
   before do
     allow(Net::SSH).to receive(:start).and_yield(ssh_connection)
+
+    @input    = StringIO.new
+    @output   = StringIO.new
+    @terminal = HighLine.new(@input, @output)
+    allow(HighLine).to receive(:new).and_return(@terminal)
   end
 
   context 'rolling restart' do
@@ -136,8 +143,14 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       end
       expect(ssh_connection).to receive(:exec).exactly(3).times
 
+      manager = ESManager.new('localhost', '9200')
+      manager.cluster_members!
+
+      @input << "yes\nyes\nyes\n"
+      @input.rewind
+
       capture_stdout do
-        CMD.rolling_restart({:hostname => 'localhost', :port => '9200'})
+        manager.rolling_restart(5, 1)
       end
     end
 
@@ -147,7 +160,13 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
       end
-      expect { manager.rolling_restart(2) }.to raise_error(Elasticsearch::Manager::StabalizationTimeout)
+
+      @input << "yes\nyes\nyes\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::StabalizationTimeout)
+      end
     end
 
     it 'handles eventual stabilization' do
@@ -156,7 +175,29 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
       end
-      expect { manager.rolling_restart(3) }.not_to raise_error
+
+      @input << "yes\nyes\nyes\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(3, 1) }.not_to raise_error
+      end
+    end
+
+    it 'Allows user to bail' do
+      manager = ESManager.new('localhost', 9200)
+      manager.cluster_members!
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "no\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::UserRequestedStop)
+      end
     end
   end
 end

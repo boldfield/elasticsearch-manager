@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'stringio'
 
 require 'net/ssh'
 require 'elasticsearch/manager/cmd'
@@ -10,6 +11,11 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
 
   before do
     allow(Net::SSH).to receive(:start).and_yield(ssh_connection)
+
+    @input    = StringIO.new
+    @output   = StringIO.new
+    @terminal = HighLine.new(@input, @output)
+    allow(HighLine).to receive(:new).and_return(@terminal)
   end
 
   context 'restart cluster' do
@@ -23,9 +29,13 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       expect(ssh_connection).to receive(:exec).exactly(3).times
 
+      @input << "yes\nyes\nyes\n"
+      @input.rewind
+
       exit_code = -1
       output = capture_stdout do
-        exit_code = CMD.rolling_restart({:hostname => 'localhost', :port => '9200'})
+        opts = {:hostname => 'localhost', :port => '9200', :sleep_interval => 1 }
+        exit_code = CMD.rolling_restart(opts)
       end
       expect(exit_code).to eql(0)
     end
@@ -34,7 +44,11 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
       end
-      opts = {:hostname => 'localhost-cmd-restart-timeout', :port => '9200', :timeout => 2}
+      opts = {:hostname => 'localhost-cmd-restart-timeout', :port => '9200', :timeout => 2, :sleep_interval => 1}
+
+      @input << "yes\nyes\nyes\n"
+      @input.rewind
+
       exit_code = -1
       output = capture_stdout do
         exit_code = CMD.rolling_restart(opts)
@@ -46,12 +60,32 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
       end
-      opts = {:hostname => 'localhost-cmd-restart-stabilization', :port => '9200', :timeout => 3}
+      opts = {:hostname => 'localhost-cmd-restart-stabilization', :port => '9200', :timeout => 3, :sleep_interval => 1}
+
+      @input << "yes\nyes\nyes\n"
+      @input.rewind
+
       exit_code = -1
       output = capture_stdout do
         exit_code = CMD.rolling_restart(opts)
       end
       expect(exit_code).to eql(0)
+    end
+
+    it 'Allows user to bail' do
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "no\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(2)
     end
   end
 end
