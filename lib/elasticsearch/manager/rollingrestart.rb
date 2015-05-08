@@ -14,11 +14,11 @@ module Elasticsearch
       def rolling_restart(timeout = 600, sleep_interval = 30)
         highline = HighLine.new
         @members.each do |m|
-          restart_node(m, timeout, sleep_interval) unless m == @leader
-          if m != @members[-1]
+          unless m == @leader
             unless highline.agree('Continue with rolling restart of cluster? (y/n) ')
               raise UserRequestedStop, "Stopping rolling restart at user request!".colorize(:red)
             end
+            restart_node(m, timeout, sleep_interval)
           end
         end
         unless highline.agree("\nRestarting current cluster master, continue? (y/n) ")
