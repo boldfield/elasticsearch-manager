@@ -38,6 +38,11 @@ EOC
   opts.on('-t TIMEOUT', '--timeout TIMEOUT', 'Timeout for waiting for cluster to stabilize during rolling-restart [default: 600]') do |p|
     options[:port] = p
   end
+
+  options[:verbose] = false
+  opts.on('-v', '--verbose', 'Print verbose messaging') do |v|
+    options[:verbose] = v
+  end
 end
 
 opt_parser.parse!

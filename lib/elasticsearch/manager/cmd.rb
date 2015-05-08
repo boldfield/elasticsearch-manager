@@ -14,7 +14,7 @@ module Elasticsearch
         manager = _manager(opts)
         # Check that the cluster is stable?
         unless manager.cluster_stable?
-          print_cluster_stable(manager)
+          print_cluster_status(manager, 'The cluster is currently unstable! Not proceeding with rolling-restart')
           return 2
         end
         puts "Discovering cluster members...\n"
@@ -35,6 +35,7 @@ module Elasticsearch
         manager = _manager(opts)
         status = manager.cluster_status
         puts "The Elasticsearch cluster is currently: #{status.colorize(status.to_sym)}"
+        print_cluster_status(manager) if opts[:verbose]
         return 0
       end
 
@@ -43,19 +44,19 @@ module Elasticsearch
         ESManager.new(opts[:hostname], opts[:port])
       end
 
-      def self.print_cluster_stable(manager)
+      def self.print_cluster_status(manager, msg = nil)
         health = manager.cluster_health
-        puts 'The cluster is currently unstable! Not proceeding with rolling-restart'
+        puts msg unless msg.nil?
         puts "\tCluster status: #{health.status.colorize(health.status.to_sym)}"
 
         relocating = health.relocating_shards == 0 ? :green : :red
         puts "\tRelocating shards: #{health.relocating_shards.to_s.colorize(relocating)}"
 
         initializing = health.initializing_shards == 0 ? :green : :red
-        puts "\tInitializing shards: #{health.relocating_shards.to_s.colorize(relocating)}"
+        puts "\tInitializing shards: #{health.initializing_shards.to_s.colorize(initializing)}"
 
         unassigned = health.unassigned_shards == 0 ? :green : :red
-        puts "\tUnassigned shards: #{health.relocating_shards.to_s.colorize(relocating)}"
+        puts "\tUnassigned shards: #{health.unassigned_shards.to_s.colorize(unassigned)}"
       end
     end
   end
