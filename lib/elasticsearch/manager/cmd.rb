@@ -31,6 +31,14 @@ module Elasticsearch
         return 0
       end
   
+      def self.list_nodes(opts)
+        manager = _manager(opts)
+        print "Discovering cluster members..." if opts[:verbose]
+        manager.cluster_members!
+        print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
+        manager.list_node_ips
+      end
+
       def self.status(opts)
         manager = _manager(opts)
         status = manager.cluster_status

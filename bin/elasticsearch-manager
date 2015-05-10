@@ -19,7 +19,8 @@ opt_parser = OptionParser.new do |opts|
 elasticsearch-manager [options] <command>
   
 Available commands:
-  rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time.
+  rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time
+  list-nodes         -- List IPs of nodes in the cluster
   status             -- Check the current state of the cluster (green/yellow/red)
 
 EOC
@@ -51,6 +52,8 @@ cmd = ARGV[0]
 case cmd
 when 'rolling-restart'
   ec = CMD.rolling_restart(options)
+when 'list-nodes'
+  ec = CMD.list_nodes(options)
 when 'status'
   ec = CMD.status(options)
 else
