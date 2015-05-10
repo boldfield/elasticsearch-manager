@@ -13,11 +13,11 @@ module Elasticsearch
         property :master_node
         nested :routing_nodes do
           property :unassigned, setter: (lambda do |v,args|
-            self.unassigned = v.map {|s| Elasticsearch::Manager::Model::Shard.new.extend(Elastiman::Model::Shard::Representer).from_hash(s) }
+            self.unassigned = v.map {|s| Elasticsearch::Model::Shard.new.extend(Elastiman::Model::Shard::Representer).from_hash(s) }
           end)
           property :nodes, setter: (lambda do |v,args|
             self.nodes = v.map do |id, shards|
-              shards.each { |shard| Elasticsearch::Manager::Model::Shard.new.extend(Elastiman::Model::Shard::Representer).from_hash(shard) }
+              shards.each { |shard| Elasticsearch::Model::Shard.new.extend(Elastiman::Model::Shard::Representer).from_hash(shard) }
             end.flatten
           end)
         end
