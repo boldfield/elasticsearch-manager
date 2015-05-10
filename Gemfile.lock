@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    elasticsearch-manager (0.1.1)
+    elasticsearch-manager (0.1.2)
       colorize (~> 0.7)
       highline (~> 1.7)
       json (~> 1.8)

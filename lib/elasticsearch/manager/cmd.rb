@@ -1,8 +1,7 @@
 require 'colorize'
 require 'net/ssh'
 
-require 'elasticsearch/manager/manager'
-require 'elasticsearch/manager/rollingrestart'
+require 'elasticsearch/manager'
 
 
 module Elasticsearch
@@ -37,6 +36,31 @@ module Elasticsearch
         manager.cluster_members!
         print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
         manager.list_node_ips
+        return 0
+      end
+
+      def self.disable_routing(opts)
+        manager = _manager(opts)
+        print "Disabling shard routing allocation..."
+        msg = if manager.disable_routing
+                "disabled!".colorize(:green)
+              else
+                "error, unable to disable shard routing allocation!".colorize(:red)
+              end
+        print "\rDisabling shard routing allocation... #{msg}\n"
+        return 0
+      end
+
+      def self.enable_routing(opts)
+        manager = _manager(opts)
+        print "Enabling shard routing allocation..."
+        msg = if manager.disable_routing
+                "enabled!".colorize(:green)
+              else
+                "error, unable to enable shard routing allocation!".colorize(:red)
+              end
+        print "\rEnabling shard routing allocation... #{msg}\n"
+        return 0
       end
 
       def self.status(opts)

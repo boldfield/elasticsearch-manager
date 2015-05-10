@@ -22,6 +22,8 @@ Available commands:
   rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time
   list-nodes         -- List IPs of nodes in the cluster
   status             -- Check the current state of the cluster (green/yellow/red)
+  diable-routing     -- Disable shard routing allocation
+  enable-routing     -- Enable shard routing allocation
 
 EOC
 
@@ -56,6 +58,10 @@ when 'list-nodes'
   ec = CMD.list_nodes(options)
 when 'status'
   ec = CMD.status(options)
+when 'disable-routing'
+  ec = CMD.disable_routing(options)
+when 'enable-routing'
+  ec = CMD.enable_routing(options)
 else
   puts "Unknown command: #{cmd}\n" 
   puts opt_parser
