@@ -21,6 +21,7 @@ elasticsearch-manager [options] <command>
 Available commands:
   rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time
   list-nodes         -- List IPs of nodes in the cluster
+  shard-state        -- Print current shard states
   status             -- Check the current state of the cluster (green/yellow/red)
   diable-routing     -- Disable shard routing allocation
   enable-routing     -- Enable shard routing allocation
@@ -56,6 +57,8 @@ when 'rolling-restart'
   ec = CMD.rolling_restart(options)
 when 'list-nodes'
   ec = CMD.list_nodes(options)
+when 'shard-state'
+  ec = CMD.shard_states(options)
 when 'status'
   ec = CMD.status(options)
 when 'disable-routing'

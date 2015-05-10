@@ -6,10 +6,11 @@ module Elasticsearch
     class ESManager
       include Elasticsearch::Model
 
-      attr_accessor :leader, :members, :nodes
+      attr_accessor :leader, :members, :nodes, :state
 
       def initialize(cluster_host = 'localhost', port = 9200)
         @client = Elasticsearch::Client::ESClient.new(cluster_host, port)
+        @state = nil
         @leader = nil
         @nodes = nil
         @members = nil
@@ -30,7 +31,7 @@ module Elasticsearch
       end
 
       def cluster_members!
-        state = cluster_state
+        @state = cluster_state
         @nodes = state.nodes
         @leader = @nodes.select { |n| n.master }[0].ip
         @members = @nodes.map { |n| n.ip }

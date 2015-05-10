@@ -54,12 +54,24 @@ module Elasticsearch
       def self.enable_routing(opts)
         manager = _manager(opts)
         print "Enabling shard routing allocation..."
-        msg = if manager.disable_routing
+        msg = if manager.enable_routing
                 "enabled!".colorize(:green)
               else
                 "error, unable to enable shard routing allocation!".colorize(:red)
               end
         print "\rEnabling shard routing allocation... #{msg}\n"
+        return 0
+      end
+
+      def self.shard_states(opts)
+        manager = _manager(opts)
+        print "Discovering cluster members..." if opts[:verbose]
+        manager.cluster_members!
+        print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
+        puts "UNASSIGNED: #{manager.state.count_unassigned_shards}"
+        manager.nodes.each do |node|
+          puts "#{node.ip}:\tINITIALIZING: #{node.count_initializing_shards}\tSTARTED: #{node.count_started_shards}"
+        end
         return 0
       end
 
