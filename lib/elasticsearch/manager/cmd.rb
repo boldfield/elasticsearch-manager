@@ -70,7 +70,7 @@ module Elasticsearch
         print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
         puts "UNASSIGNED: #{manager.state.count_unassigned_shards}"
         manager.nodes.each do |node|
-          puts "#{node.ip}:\tINITIALIZING: #{node.count_initializing_shards}\tSTARTED: #{node.count_started_shards}"
+          puts "#{node.ip}:\tSTARTED: #{node.count_started_shards}\t|\tINITIALIZING: #{node.count_initializing_shards}\t|\tRELOCATING: #{node.count_relocating_shards}"
         end
         return 0
       end

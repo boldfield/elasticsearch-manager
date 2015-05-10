@@ -39,6 +39,10 @@ module Elasticsearch
         shards.select { |s| s.state.upcase == 'INITIALIZING' }.length
       end
 
+      def count_relocating_shards
+        shards.select { |s| s.state.upcase == 'RELOCATING' }.length
+      end
+
       def count_started_shards
         shards.select { |s| s.state.upcase == 'STARTED' }.length
       end

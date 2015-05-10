@@ -33,6 +33,7 @@ module Elasticsearch
       def cluster_members!
         @state = cluster_state
         @nodes = state.nodes
+        @nodes.sort! { |a,b| a.id <=> b.id }
         @leader = @nodes.select { |n| n.master }[0].ip
         @members = @nodes.map { |n| n.ip }
       end
