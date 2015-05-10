@@ -29,6 +29,16 @@ module Elasticsearch
         get('/_cluster/settings')
       end
 
+      def node_concurrent_recoveries(num_recoveries = 2)
+        data = {
+          'transient' => {
+            'cluster.routing.allocation.node_concurrent_recoveries' => num_recoveries
+          }
+        }.to_json
+
+        put('/_cluster/settings', data)
+      end
+
       def routing(disable = true)
         data = {
           'transient' => {

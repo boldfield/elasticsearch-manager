@@ -57,6 +57,12 @@ module Elasticsearch
         ret = @client.routing(false)
         ret['transient']['cluster']['routing']['allocation']['enable'] == 'all'
       end
+
+      def set_concurrent_recoveries(num_recoveries)
+        ret = @client.node_concurrent_recoveries(num_recoveries)
+        # Elasticache seems to return integer settings as strings when setting them...
+        ret['transient']['cluster']['routing']['allocation']['node_concurrent_recoveries'] == num_recoveries.to_s
+      end
     end
   end
 end

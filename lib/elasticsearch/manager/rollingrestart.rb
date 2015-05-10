@@ -29,8 +29,10 @@ module Elasticsearch
 
       def restart_node(node_ip, timeout, sleep_interval)
           puts "\nRestarting Elasticsearch on node: #{node_ip}"
+          # Pull the current node's state
+          n = @state.nodes.select { |n| n.ip == node_ip }[0]
+
           raise "Could not disable shard routing prior to restarting node: #{node_ip}".colorize(:red) unless disable_routing
-          
           Net::SSH.start(node_ip, ENV['USER']) do |ssh|
             ssh.exec 'sudo service elasticsearch restart'
           end
@@ -42,6 +44,10 @@ module Elasticsearch
           rescue Timeout::Error
             raise NodeAvailableTimeout, "Node did not become available after waiting #{timeout} seconds...".colorize(:red)
           end
+
+          # Make sure the cluster is willing to concurrently recover as many
+          # shards per node as this node happens to have.
+          raise "Could not update node_concurrent_recoveries prior to restarting node: #{node_ip}".colorize(:red) unless set_concurrent_recoveries(n.count_started_shards + 1)
 
           raise "Could not re-enable shard routing following restart of node: #{node_ip}".colorize(:red) unless enable_routing
 
