@@ -1,5 +1,5 @@
 module Elasticsearch
   module Manager
-    VERSION = "0.1.2.pre.2"
+    VERSION = "0.1.2"
   end
 end

@@ -119,5 +119,70 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       expect(exit_code).to eql(2)
     end
+
+    it 'throws settings update error when disabling routing' do
+      opts = {:hostname => 'localhost-disable-routing-error', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'throws settings update error when updating recovery concurrency' do
+      opts = {:hostname => 'localhost-update-concurrent-error', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'handles server errors on settings update' do
+      opts = {:hostname => 'localhost-error-settings', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(3)
+    end
+
+    it 'handles server errors on state request' do
+      opts = {:hostname => 'localhost-error-state', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(3)
+    end
+
+    it 'handles server errors on health request' do
+      opts = {:hostname => 'localhost-error-health', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(3)
+    end
   end
 end

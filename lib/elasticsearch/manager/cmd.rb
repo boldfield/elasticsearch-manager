@@ -12,17 +12,31 @@ module Elasticsearch
       def self.rolling_restart(opts)
         manager = _manager(opts)
         # Check that the cluster is stable?
-        unless manager.cluster_stable?
-          print_cluster_status(manager, 'The cluster is currently unstable! Not proceeding with rolling-restart')
+        begin
+          unless manager.cluster_stable?
+            print_cluster_status(manager, 'The cluster is currently unstable! Not proceeding with rolling-restart')
+            return 2
+          end
+
+          print "Discovering cluster members..." if opts[:verbose]
+          manager.cluster_members!
+          print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
+        rescue Elasticsearch::Manager::ApiError => e
+          puts e
+          return 3
+        rescue Exception => e
+          puts e
           return 2
         end
-        print "Discovering cluster members..." if opts[:verbose]
-        manager.cluster_members!
-        print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
+
         timeout = opts[:timeout] || 600
         sleep_interval = opts[:sleep_interval] || 30
+
         begin
           manager.rolling_restart(timeout, sleep_interval)
+        rescue Elasticsearch::Manager::ApiError => e
+          puts e
+          return 3
         rescue Exception => e
           puts e
           return 2

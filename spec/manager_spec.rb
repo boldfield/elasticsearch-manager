@@ -230,5 +230,52 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
         expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::UserRequestedStop)
       end
     end
+
+    it 'throws settings update error when disabling routing' do
+      manager = ESManager.new('localhost-disable-routing-error', 9200)
+      manager.cluster_members!
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::ClusterSettingsUpdateError)
+      end
+    end
+
+    it 'throws settings update error when updating recovery concurrency' do
+      manager = ESManager.new('localhost-update-concurrent-error', 9200)
+      manager.cluster_members!
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::ClusterSettingsUpdateError)
+      end
+    end
+
+    it 'handles server errors on settings update' do
+      manager = ESManager.new('localhost-error-settings', 9200)
+      manager.cluster_members!
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      output = capture_stdout do
+        expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::ApiError)
+      end
+    end
+
+    it 'handles server errors on state request' do
+      manager = ESManager.new('localhost-error-state', 9200)
+
+      output = capture_stdout do
+        expect { manager.cluster_members! }.to raise_error(Elasticsearch::Manager::ApiError)
+      end
+    end
   end
 end

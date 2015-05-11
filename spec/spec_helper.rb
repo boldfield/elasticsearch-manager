@@ -22,12 +22,14 @@ require 'rack'
 WebMock.disable_net_connect!(allow_localhost: false)
 DIR = File.expand_path(File.dirname(__FILE__))
 
-class RestartTimeoutRack
-  def initialize(state_success_count = 10)
+class EsApiRack
+  def initialize(state_success_count = 10, concurrency_update_fail = false, routing_update_faile = false)
     @health_call_count = 0
     @state_call_count = 0
 
     @state_success_count = state_success_count
+    @concurrency_update_fail = concurrency_update_fail
+    @routing_update_faile = routing_update_faile
   end
 
   def call(env)
@@ -44,6 +46,17 @@ class RestartTimeoutRack
       inp = env['rack.input'].read
       at = inp[/\.([\w_]+)":/,1]
       val = inp[/allocation.*":["]?([^"]+)["]?}}/,1]
+      if @routing_update_faile
+        case val
+        when 'all'
+          val = 'none'
+        when 'none'
+          val = 'all'
+        end
+      elsif @concurrency_update_fail
+        val = '2'
+      end
+
       ret = "{\"transient\":{\"cluster\":{\"routing\":{\"allocation\":{\"#{at}\":\"#{val}\"}}}}}"
     when '/_cluster/state'
       if @state_call_count < @state_success_count
@@ -54,6 +67,34 @@ class RestartTimeoutRack
       @state_call_count += 1
     end
     [200, { 'Content-Type' => 'application/json' }, [ret]]
+  end
+end
+
+class EsApiErrorRack < EsApiRack
+  def initialize(err_health = false, err_settings = false, err_state = false)
+    super(10, false, false)
+    @err_settings = err_settings
+    @err_health = err_health
+    @err_state = err_state
+  end
+
+  def call(env)
+    ret = super(env)
+    case env['PATH_INFO']
+    when '/_cluster/health'
+      if @err_health
+        ret = [500, ret[1], ret[2]]
+      end
+    when '/_cluster/settings'
+      if @err_settings
+        ret = [500, ret[1], ret[2]]
+      end
+    when '/_cluster/state'
+      if @err_state
+        ret = [500, ret[1], ret[2]]
+      end
+    end
+    ret
   end
 end
 
@@ -190,22 +231,37 @@ RSpec.configure do |config|
                 headers: {'Content-Type' => 'application/json'})
 
     stub_request(:put, /localhost:9200\/_cluster\/settings/).
-      to_rack(RestartTimeoutRack.new(15))
+      to_rack(EsApiRack.new(15))
 
     stub_request(:any, /localhost-restart-timeout:9200\//).
-      to_rack(RestartTimeoutRack.new)
+      to_rack(EsApiRack.new)
     stub_request(:any, /localhost-cmd-restart-timeout:9200\//).
-      to_rack(RestartTimeoutRack.new)
+      to_rack(EsApiRack.new)
 
     stub_request(:any, /localhost-restart-stabilization:9200\//).
-      to_rack(RestartTimeoutRack.new)
+      to_rack(EsApiRack.new)
     stub_request(:any, /localhost-cmd-restart-stabilization:9200\//).
-      to_rack(RestartTimeoutRack.new)
+      to_rack(EsApiRack.new)
 
     stub_request(:any, /localhost-restart-not-available:9200\//).
-      to_rack(RestartTimeoutRack.new(2))
+      to_rack(EsApiRack.new(2))
     stub_request(:any, /localhost-cmd-restart-not-available:9200\//).
-      to_rack(RestartTimeoutRack.new(1))
+      to_rack(EsApiRack.new(1))
+
+    stub_request(:any, /localhost-disable-routing-error:9200\//).
+      to_rack(EsApiRack.new(2, false, true))
+
+    stub_request(:any, /localhost-update-concurrent-error:9200\//).
+      to_rack(EsApiRack.new(2, true, false))
+
+    stub_request(:any, /localhost-error-health:9200\//).
+      to_rack(EsApiErrorRack.new(true, false, false))
+
+    stub_request(:any, /localhost-error-settings:9200\//).
+      to_rack(EsApiErrorRack.new(false, true, false))
+
+    stub_request(:any, /localhost-error-state:9200\//).
+      to_rack(EsApiErrorRack.new(false, false, true))
   end
 end
 

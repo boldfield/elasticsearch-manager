@@ -1,5 +1,6 @@
 require 'logger'
 require 'rest-client'
+require 'elasticsearch/manager/errors'
 
 module Elasticsearch
   module Client
@@ -35,9 +36,7 @@ module Elasticsearch
         begin
           return RestClient.get url, opts
         rescue Exception => e
-          @logger.error(e.message)
-          raise e
-          raise IOError.new "Unable to complete get request: #{e}"
+          raise Elasticsearch::Manager::ApiError.new "Unable to complete get request: #{e}"
         end
       end
 
@@ -48,8 +47,7 @@ module Elasticsearch
         begin
           return RestClient.put url, body, opts
         rescue Exception => e
-          @logger.error(e.message)
-          raise IOError.new "Unable to complete put request: #{e}"
+          raise Elasticsearch::Manager::ApiError.new "Unable to complete put request: #{e}"
         end
       end
 

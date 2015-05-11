@@ -8,5 +8,11 @@ module Elasticsearch
 
     class UserRequestedStop < StandardError
     end
+
+    class ClusterSettingsUpdateError < StandardError
+    end
+
+    class ApiError < StandardError
+    end
   end
 end
