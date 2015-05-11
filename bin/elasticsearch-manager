@@ -23,7 +23,7 @@ Available commands:
   list-nodes         -- List IPs of nodes in the cluster
   shard-state        -- Print current shard states
   status             -- Check the current state of the cluster (green/yellow/red)
-  diable-routing     -- Disable shard routing allocation
+  disable-routing    -- Disable shard routing allocation
   enable-routing     -- Enable shard routing allocation
 
 EOC
