@@ -17,7 +17,7 @@ options = {}
 opt_parser = OptionParser.new do |opts|
   opts.banner = <<EOC
 elasticsearch-manager [options] <command>
-  
+
 Available commands:
   rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time
   list-nodes         -- List IPs of nodes in the cluster
@@ -39,13 +39,23 @@ EOC
   end
 
   options[:timeout] = 600
-  opts.on('-t TIMEOUT', '--timeout TIMEOUT', 'Timeout for waiting for cluster to stabilize during rolling-restart [default: 600]') do |p|
-    options[:port] = p
+  opts.on('-t TIMEOUT', '--timeout TIMEOUT', 'Timeout for waiting for cluster to stabilize during rolling-restart [default: 600]') do |t|
+    options[:port] = t
+  end
+
+  options[:sleep_interval] = 30
+  opts.on('-s SLEEP', '--sleep SLEEP', 'Sleep interval between cluster stabilize/node availability checks during rolling-restart [default: 30]') do |s|
+    options[:port] = s
   end
 
   options[:verbose] = false
   opts.on('-v', '--verbose', 'Print verbose messaging') do |v|
     options[:verbose] = v
+  end
+
+  options[:assume_yes] = false
+  opts.on('-y', '--yes', 'Assume Yes to all queries and do not prompt') do |y|
+    options[:assume_yes] = y
   end
 end
 

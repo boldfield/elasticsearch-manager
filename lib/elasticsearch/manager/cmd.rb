@@ -31,9 +31,10 @@ module Elasticsearch
 
         timeout = opts[:timeout] || 600
         sleep_interval = opts[:sleep_interval] || 30
+        assume_yes = opts[:assume_yes].nil? ? false : opts[:assume_yes]
 
         begin
-          manager.rolling_restart(timeout, sleep_interval)
+          manager.rolling_restart(timeout, sleep_interval, assume_yes)
         rescue Elasticsearch::Manager::ApiError => e
           puts e
           return 3

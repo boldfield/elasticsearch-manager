@@ -11,17 +11,17 @@ module Elasticsearch
   module Manager
 
     class ESManager
-      def rolling_restart(timeout = 600, sleep_interval = 30)
+      def rolling_restart(timeout = 600, sleep_interval = 30, assume_yes = false)
         highline = HighLine.new
         @members.each do |m|
           unless m == @leader
-            unless highline.agree('Continue with rolling restart of cluster? (y/n) ')
+            unless assume_yes || highline.agree('Continue with rolling restart of cluster? (y/n) ')
               raise UserRequestedStop, "Stopping rolling restart at user request!".colorize(:red)
             end
             restart_node(m, timeout, sleep_interval)
           end
         end
-        unless highline.agree("\nRestarting current cluster master, continue? (y/n) ")
+        unless assume_yes || highline.agree("\nRestarting current cluster master, continue? (y/n) ")
           raise UserRequestedStop, "Stopping rolling restart at user request before restarting master node!".colorize(:red)
         end
         restart_node(@leader, timeout, sleep_interval)
@@ -30,7 +30,7 @@ module Elasticsearch
       def restart_node(node_ip, timeout, sleep_interval)
           puts "\nRestarting Elasticsearch on node: #{node_ip}"
           # Pull the current node's state
-          n = @state.nodes.select { |n| n.ip == node_ip }[0]
+          n = @state.nodes.select { |i| i.ip == node_ip }[0]
 
           raise ClusterSettingsUpdateError, "Could not disable shard routing prior to restarting node: #{node_ip}".colorize(:red) unless disable_routing
 

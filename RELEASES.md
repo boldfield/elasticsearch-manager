@@ -1,6 +1,9 @@
 # Releases
 
 ## Current
+- Adding new options
+  + -y/--y, assume yes to all questions and do not prompt
+  + -s/--sleep, set sleep interval used between checks
 
 ## v0.1.2
 - Added new actions

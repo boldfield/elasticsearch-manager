@@ -40,6 +40,27 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       expect(exit_code).to eql(0)
     end
 
+    it 'does a clean restart with assume yes' do
+      expect(Net::SSH).to receive(:start).with('10.110.40.133', ENV['USER']).ordered
+      expect(Net::SSH).to receive(:start).with('10.110.33.218', ENV['USER']).ordered
+      expect(Net::SSH).to receive(:start).with('10.110.38.153', ENV['USER']).ordered
+
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      expect(ssh_connection).to receive(:exec).exactly(3).times
+
+      @input << ""
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        opts = { :hostname => 'localhost', :port => '9200', :sleep_interval => 1, :assume_yes => true }
+        exit_code = CMD.rolling_restart(opts)
+      end
+      expect(exit_code).to eql(0)
+    end
+
     it 'throws stabilization timeout' do
       allow(ssh_connection).to receive(:exec) do |arg|
         expect(arg).to eql('sudo service elasticsearch restart')
