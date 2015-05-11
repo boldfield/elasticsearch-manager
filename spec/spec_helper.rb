@@ -41,11 +41,10 @@ class RestartTimeoutRack
       end
       @health_call_count += 1
     when '/_cluster/settings'
-      if env['rack.input'].read[/none/].nil?
-        ret = '{"transient":{"cluster":{"routing":{"allocation":{"enable":"all"}}}}}'
-      else
-        ret = '{"transient":{"cluster":{"routing":{"allocation":{"enable":"none"}}}}}'
-      end
+      inp = env['rack.input'].read
+      at = inp[/\.([\w_]+)":/,1]
+      val = inp[/allocation.*":["]?([^"]+)["]?}}/,1]
+      ret = "{\"transient\":{\"cluster\":{\"routing\":{\"allocation\":{\"#{at}\":\"#{val}\"}}}}}"
     when '/_cluster/state'
       if @state_call_count < @state_success_count
         ret = File.read(DIR + '/fixtures/state.json')
@@ -191,11 +190,7 @@ RSpec.configure do |config|
                 headers: {'Content-Type' => 'application/json'})
 
     stub_request(:put, /localhost:9200\/_cluster\/settings/).
-      with(:body => '{"transient":{"cluster.routing.allocation.enable":"all"}}').
-      to_return(status: 200,
-                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"all"}}}}}',
-                headers: {'Content-Type' => 'application/json'})
-
+      to_rack(RestartTimeoutRack.new(15))
 
     stub_request(:any, /localhost-restart-timeout:9200\//).
       to_rack(RestartTimeoutRack.new)
@@ -208,7 +203,7 @@ RSpec.configure do |config|
       to_rack(RestartTimeoutRack.new)
 
     stub_request(:any, /localhost-restart-not-available:9200\//).
-      to_rack(RestartTimeoutRack.new(1))
+      to_rack(RestartTimeoutRack.new(2))
     stub_request(:any, /localhost-cmd-restart-not-available:9200\//).
       to_rack(RestartTimeoutRack.new(1))
   end

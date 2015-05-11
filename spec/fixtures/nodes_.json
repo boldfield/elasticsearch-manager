@@ -1,7 +1,7 @@
 {
   "cluster_name": "socrata_test_es_cluster",
   "nodes": {
-    "v8w7dipKTo-52KuS6mMqYA": {
+    "qRZ0OuvnS0aFolT49pnI9A": {
       "name": "node1.example.com",
       "transport_address": "inet[/10.110.39.215:9300]",
       "host": "ip-10-110-39-215.us-west-2.compute.internal",
@@ -276,7 +276,7 @@
         }
       ]
     },
-    "j4eRj4UNRlmZDEtbjH5yTA": {
+    "mut8vyUIQlyG4eX6KVXxhw": {
       "name": "node2.example.com",
       "transport_address": "inet[/10.110.42.16:9300]",
       "host": "ip-10-110-42-16.us-west-2.compute.internal",
@@ -551,7 +551,7 @@
         }
       ]
     },
-    "ofXIjVIMR-OmzYXTDyRP_Q": {
+    "bpYEXBf-QsCc7oLCjrpO-w": {
       "name": "node3.example.com",
       "transport_address": "inet[ip-10-110-34-69.us-west-2.compute.internal/10.110.34.69:9300]",
       "host": "ip-10-110-34-69.us-west-2.compute.internal",

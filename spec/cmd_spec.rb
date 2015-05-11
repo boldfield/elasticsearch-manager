@@ -20,8 +20,8 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
 
   context 'restart cluster' do
     it 'does a clean restart' do
-      expect(Net::SSH).to receive(:start).with('10.110.33.218', ENV['USER']).ordered
       expect(Net::SSH).to receive(:start).with('10.110.40.133', ENV['USER']).ordered
+      expect(Net::SSH).to receive(:start).with('10.110.33.218', ENV['USER']).ordered
       expect(Net::SSH).to receive(:start).with('10.110.38.153', ENV['USER']).ordered
 
       allow(ssh_connection).to receive(:exec) do |arg|
