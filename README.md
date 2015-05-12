@@ -86,7 +86,7 @@ Cluster stabilized!
 ```
 $ elasticsearch-manager --cluster-hostname elasticsearch.example.com \
                         --port 9200 status \
-                        diable-routing
+                        disable-routing
 Disabling shard routing allocation... disabled!
 ```
 

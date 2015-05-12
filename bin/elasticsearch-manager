@@ -76,7 +76,7 @@ when 'disable-routing'
 when 'enable-routing'
   ec = CMD.enable_routing(options)
 else
-  puts "Unknown command: #{cmd}\n" 
+  puts "Unknown command: #{cmd}\n"
   puts opt_parser
 end
 
