@@ -40,12 +40,12 @@ EOC
 
   options[:timeout] = 600
   opts.on('-t TIMEOUT', '--timeout TIMEOUT', 'Timeout for waiting for cluster to stabilize during rolling-restart [default: 600]') do |t|
-    options[:port] = t
+    options[:timeout] = t.to_i
   end
 
   options[:sleep_interval] = 30
   opts.on('-s SLEEP', '--sleep SLEEP', 'Sleep interval between cluster stabilize/node availability checks during rolling-restart [default: 30]') do |s|
-    options[:port] = s
+    options[:sleep_interval] = s.to_i
   end
 
   options[:verbose] = false
