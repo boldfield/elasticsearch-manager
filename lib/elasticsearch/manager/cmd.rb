@@ -37,10 +37,6 @@ module Elasticsearch
             print_cluster_status(manager, 'The cluster is currently unstable! Not proceeding with rolling-restart')
             return 2
           end
-
-          print "Discovering cluster members..." if opts[:verbose]
-          manager.cluster_members!
-          print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
         rescue Elasticsearch::Manager::ApiError => e
           puts e
           return 3
