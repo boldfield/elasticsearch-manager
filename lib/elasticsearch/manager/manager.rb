@@ -14,6 +14,7 @@ module Elasticsearch
         @leader = nil
         @nodes = nil
         @members = nil
+        @highline = HighLine.new
       end
 
       def cluster_green?

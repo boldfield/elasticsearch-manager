@@ -10,13 +10,14 @@ module Elasticsearch
       include Elasticsearch::Manager
 
       def self.restart_node(opts)
-        manager = _manager(opts)
-        node_ip = opts[:ip]
+        node_ip = opts[:hostname]
         timeout = opts[:timeout] || 600
+        assume_yes = opts[:assume_yes] || false
         sleep_interval = opts[:sleep_interval] || 30
 
         begin
-          manager.restart_node(node_ip, timeout, sleep_interval)
+          manager = _manager(opts)
+          manager.restart_node(node_ip, timeout, sleep_interval, assume_yes)
         rescue Elasticsearch::Manager::ApiError => e
           puts e
           return 3
@@ -29,9 +30,9 @@ module Elasticsearch
       end
 
       def self.rolling_restart(opts)
-        manager = _manager(opts)
         # Check that the cluster is stable?
         begin
+          manager = _manager(opts)
           unless manager.cluster_stable?
             print_cluster_status(manager, 'The cluster is currently unstable! Not proceeding with rolling-restart')
             return 2

@@ -58,11 +58,6 @@ EOC
   opts.on('-y', '--yes', 'Assume Yes to all queries and do not prompt') do |y|
     options[:assume_yes] = y
   end
-
-  options[:node_ip] = 'localhost'
-  opts.on('-i', '--ip-address', 'IP Address of the node to restart') do |i|
-    options[:node_ip] = i
-  end
 end
 
 opt_parser.parse!
