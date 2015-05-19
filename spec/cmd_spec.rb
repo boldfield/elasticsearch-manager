@@ -6,6 +6,159 @@ require 'elasticsearch/manager/cmd'
 
 include Elasticsearch::Manager
 
+describe 'Elasticsearch::Manager::CMD' '#restart_node' do
+  let (:ssh_connection) { double("SSH Connection") }
+
+  before do
+    allow(Net::SSH).to receive(:start).and_yield(ssh_connection)
+
+    @input    = StringIO.new
+    @output   = StringIO.new
+    @terminal = HighLine.new(@input, @output)
+    allow(HighLine).to receive(:new).and_return(@terminal)
+  end
+
+  context 'restart node' do
+    it 'does a clean restart' do
+      expect(Net::SSH).to receive(:start).with('10.110.40.133', ENV['USER']).ordered
+
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      expect(ssh_connection).to receive(:exec).exactly(1).times
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        opts = {:hostname => '10.110.40.133', :port => '9200', :sleep_interval => 1, :assume_yes => false }
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(0)
+    end
+
+    it 'does a clean restart with assume yes' do
+      expect(Net::SSH).to receive(:start).with('10.110.40.133', ENV['USER']).ordered
+
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      expect(ssh_connection).to receive(:exec).exactly(1).times
+
+      @input << ""
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        opts = { :hostname => '10.110.40.133', :port => '9200', :sleep_interval => 1, :assume_yes => true }
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(0)
+    end
+
+    it 'throws stabilization timeout' do
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost-cmd-restart-timeout', :port => '9200', :timeout => 2, :sleep_interval => 1}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'throws node available timeout' do
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost-cmd-restart-not-available', :port => '9200', :timeout => 2, :sleep_interval => 1}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'Allows user to bail' do
+      allow(ssh_connection).to receive(:exec) do |arg|
+        expect(arg).to eql('sudo service elasticsearch restart')
+      end
+      opts = {:hostname => 'localhost', :port => '9200'}
+
+      @input << "no\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'throws settings update error when disabling routing' do
+      opts = {:hostname => 'localhost-disable-routing-error', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'throws settings update error when updating recovery concurrency' do
+      opts = {:hostname => 'localhost-update-concurrent-error', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(2)
+    end
+
+    it 'handles server errors on settings update' do
+      opts = {:hostname => 'localhost-error-settings', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(3)
+    end
+
+    it 'handles server errors on state request' do
+      opts = {:hostname => 'localhost-error-state', :port => '9200'}
+
+      @input << "y\n"
+      @input.rewind
+
+      exit_code = -1
+      output = capture_stdout do
+        exit_code = CMD.restart_node(opts)
+      end
+      expect(exit_code).to eql(3)
+    end
+  end
+end
+
 describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
   let (:ssh_connection) { double("SSH Connection") }
 
@@ -29,7 +182,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       expect(ssh_connection).to receive(:exec).exactly(3).times
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -67,7 +220,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost-cmd-restart-timeout', :port => '9200', :timeout => 2, :sleep_interval => 1}
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -83,7 +236,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost-cmd-restart-not-available', :port => '9200', :timeout => 2, :sleep_interval => 1}
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -99,7 +252,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost-cmd-restart-stabilization', :port => '9200', :timeout => 3, :sleep_interval => 1}
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       exit_code = -1
@@ -131,7 +284,7 @@ describe 'Elasticsearch::Manager::CMD' '#rolling_restart' do
       end
       opts = {:hostname => 'localhost', :port => '9200'}
 
-      @input << "y\ny\nn\n"
+      @input << "y\ny\ny\nn\n"
       @input.rewind
 
       exit_code = -1

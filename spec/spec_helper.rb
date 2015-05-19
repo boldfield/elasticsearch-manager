@@ -23,13 +23,13 @@ WebMock.disable_net_connect!(allow_localhost: false)
 DIR = File.expand_path(File.dirname(__FILE__))
 
 class EsApiRack
-  def initialize(state_success_count = 10, concurrency_update_fail = false, routing_update_faile = false)
+  def initialize(state_success_count = 10, concurrency_update_fail = false, routing_update_failed = false)
     @health_call_count = 0
     @state_call_count = 0
 
     @state_success_count = state_success_count
     @concurrency_update_fail = concurrency_update_fail
-    @routing_update_faile = routing_update_faile
+    @routing_update_failed = routing_update_failed
   end
 
   def call(env)
@@ -46,7 +46,7 @@ class EsApiRack
       inp = env['rack.input'].read
       at = inp[/\.([\w_]+)":/,1]
       val = inp[/allocation.*":["]?([^"]+)["]?}}/,1]
-      if @routing_update_faile
+      if @routing_update_failed
         case val
         when 'all'
           val = 'none'
@@ -171,6 +171,68 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
   config.before(:each) do
+    stub_request(:get, /10.110.40.133:9200\/base\/client/).
+      to_return(status: 200, body: 'requested: /base/client', headers: {})
+
+    stub_request(:get, /10.110.40.133:9200\/_cluster\/health/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/health.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /localhost-yellow:9200\/_cluster\/health/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/health_yellow.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /localhost-red:9200\/_cluster\/health/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/health_red.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /localhost-realocating:9200\/_cluster\/health/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/health_realocating.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /localhost-initializing:9200\/_cluster\/health/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/health_initializing.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /localhost-unassigned:9200\/_cluster\/health/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/health_unassigned.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /10.110.40.133:9200\/_cluster\/state/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/state.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:get, /10.110.40.133:9200\/_nodes/).
+      to_return(status: 200,
+                body: File.read(DIR + '/fixtures/nodes_.json'),
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:put, /localhost-route-disabled:9200\/_cluster\/settings/).
+      to_return(status: 200,
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"none"}}}}}',
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:put, /localhost-route-enabled:9200\/_cluster\/settings/).
+      to_return(status: 200,
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"all"}}}}}',
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:put, /10.110.40.133:9200\/_cluster\/settings/).
+      with(:body => '{"transient":{"cluster.routing.allocation.enable":"none"}}').
+      to_return(status: 200,
+                body: '{"transient":{"cluster":{"routing":{"allocation":{"enable":"none"}}}}}',
+                headers: {'Content-Type' => 'application/json'})
+
+    stub_request(:put, /10.110.40.133:9200\/_cluster\/settings/).
+      to_rack(EsApiRack.new(15))
+
     stub_request(:get, /localhost:9200\/base\/client/).
       to_return(status: 200, body: 'requested: /base/client', headers: {})
 
@@ -235,16 +297,19 @@ RSpec.configure do |config|
 
     stub_request(:any, /localhost-restart-timeout:9200\//).
       to_rack(EsApiRack.new)
+
     stub_request(:any, /localhost-cmd-restart-timeout:9200\//).
       to_rack(EsApiRack.new)
 
     stub_request(:any, /localhost-restart-stabilization:9200\//).
       to_rack(EsApiRack.new)
+
     stub_request(:any, /localhost-cmd-restart-stabilization:9200\//).
       to_rack(EsApiRack.new)
 
     stub_request(:any, /localhost-restart-not-available:9200\//).
       to_rack(EsApiRack.new(2))
+
     stub_request(:any, /localhost-cmd-restart-not-available:9200\//).
       to_rack(EsApiRack.new(1))
 
@@ -262,6 +327,27 @@ RSpec.configure do |config|
 
     stub_request(:any, /localhost-error-state:9200\//).
       to_rack(EsApiErrorRack.new(false, false, true))
+
+    stub_request(:any, /localhost-yellow:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
+
+    stub_request(:any, /localhost-red:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
+
+    stub_request(:any, /localhost-realocating:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
+
+    stub_request(:any, /localhost-initializing:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
+
+    stub_request(:any, /localhost-unassigned:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
+
+    stub_request(:any, /localhost-route-disabled:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
+
+    stub_request(:any, /localhost-route-enabled:9200\/_cluster\/state/).
+      to_rack(EsApiRack.new)
   end
 end
 

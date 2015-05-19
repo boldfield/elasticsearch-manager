@@ -30,7 +30,7 @@ describe 'Elasticsearch::Manager::ESManager' '#cluster_health' do
     it 'returns valid model' do
       c = ESManager.new
       health = c.cluster_health
-      
+
       expect(health.cluster_name).to eql('test_es_cluster')
       expect(health.status).to eql('green')
       expect(health.timed_out).to be(false)
@@ -146,7 +146,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
       manager = ESManager.new('localhost', '9200')
       manager.cluster_members!
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       capture_stdout do
@@ -161,7 +161,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
         expect(arg).to eql('sudo service elasticsearch restart')
       end
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       output = capture_stdout do
@@ -176,7 +176,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
         expect(arg).to eql('sudo service elasticsearch restart')
       end
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       output = capture_stdout do
@@ -191,7 +191,7 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
         expect(arg).to eql('sudo service elasticsearch restart')
       end
 
-      @input << "y\ny\ny\n"
+      @input << "y\ny\ny\ny\n"
       @input.rewind
 
       output = capture_stdout do
@@ -267,14 +267,6 @@ describe 'Elasticsearch::Manager::ESManager' 'routing' do
 
       output = capture_stdout do
         expect { manager.rolling_restart(2, 1) }.to raise_error(Elasticsearch::Manager::ApiError)
-      end
-    end
-
-    it 'handles server errors on state request' do
-      manager = ESManager.new('localhost-error-state', 9200)
-
-      output = capture_stdout do
-        expect { manager.cluster_members! }.to raise_error(Elasticsearch::Manager::ApiError)
       end
     end
   end
