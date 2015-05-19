@@ -42,6 +42,13 @@ $ elasticsearch-manager --cluster-hostname elasticsearch.example.com \
 The Elasticsearch cluster is currently: green
 ```
 
+## Restart a single node by ip
+```
+$ elasticsearch-manager --ip-address 127.0.0.1 \
+                        --port 9200 status \
+                        restart-node
+```
+
 ## Perform a rolling restart of a cluster
 ```
 $ elasticsearch-manager --cluster-hostname elasticsearch.example.com \

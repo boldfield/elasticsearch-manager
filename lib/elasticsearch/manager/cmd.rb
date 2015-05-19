@@ -9,6 +9,25 @@ module Elasticsearch
     module CMD
       include Elasticsearch::Manager
 
+      def self.restart_node(opts)
+        manager = _manager(opts)
+        node_ip = opts[:ip]
+        timeout = opts[:timeout] || 600
+        sleep_interval = opts[:sleep_interval] || 30
+
+        begin
+          manager.restart_node(node_ip, timeout, sleep_interval)
+        rescue Elasticsearch::Manager::ApiError => e
+          puts e
+          return 3
+        rescue Exception => e
+          puts e
+          return 2
+        end
+        puts "restart of elasticsearch node #{node_ip} complete."
+        return 0
+      end
+
       def self.rolling_restart(opts)
         manager = _manager(opts)
         # Check that the cluster is stable?

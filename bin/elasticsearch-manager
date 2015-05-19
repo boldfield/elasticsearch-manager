@@ -19,6 +19,7 @@ opt_parser = OptionParser.new do |opts|
 elasticsearch-manager [options] <command>
 
 Available commands:
+  restart-node       -- Restart a single elasticsearch node
   rolling-restart    -- Restart elasticsearch across the entire cluster, one node at a time
   list-nodes         -- List IPs of nodes in the cluster
   shard-state        -- Print current shard states
@@ -57,12 +58,19 @@ EOC
   opts.on('-y', '--yes', 'Assume Yes to all queries and do not prompt') do |y|
     options[:assume_yes] = y
   end
+
+  options[:node_ip] = 'localhost'
+  opts.on('-i', '--ip-address', 'IP Address of the node to restart') do |i|
+    options[:node_ip] = i
+  end
 end
 
 opt_parser.parse!
 
 cmd = ARGV[0]
 case cmd
+when 'restart-node'
+  ec = CMD.restart_node(options)
 when 'rolling-restart'
   ec = CMD.rolling_restart(options)
 when 'list-nodes'
