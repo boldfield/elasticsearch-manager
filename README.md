@@ -42,6 +42,17 @@ $ elasticsearch-manager --cluster-hostname elasticsearch.example.com \
 The Elasticsearch cluster is currently: green
 ```
 
+## Restart a single node by ip or hostname
+```
+$ elasticsearch-manager --hostname localhost \
+                        --port 9200 \
+                        restart-node
+```
+
+If using a dns name, confirm that the dns resolves to a single host. If a record
+that references a load balancer is used, the behavior of this command is
+undefined.
+
 ## Perform a rolling restart of a cluster
 ```
 $ elasticsearch-manager --cluster-hostname elasticsearch.example.com \
@@ -86,7 +97,7 @@ Cluster stabilized!
 ```
 $ elasticsearch-manager --cluster-hostname elasticsearch.example.com \
                         --port 9200 status \
-                        diable-routing
+                        disable-routing
 Disabling shard routing allocation... disabled!
 ```
 

@@ -10,10 +10,8 @@ module Elasticsearch
 
       def initialize(cluster_host = 'localhost', port = 9200)
         @client = Elasticsearch::Client::ESClient.new(cluster_host, port)
-        @state = nil
-        @leader = nil
-        @nodes = nil
-        @members = nil
+        @highline = HighLine.new
+        cluster_members!
       end
 
       def cluster_green?
@@ -27,7 +25,7 @@ module Elasticsearch
       def cluster_stable?
         health = cluster_health
         moving = [health.relocating_shards, health.initializing_shards, health.unassigned_shards]
-        cluster_green? && moving.all? { |x| x == 0 } 
+        cluster_green? && moving.all? { |x| x == 0 }
       end
 
       def cluster_members!

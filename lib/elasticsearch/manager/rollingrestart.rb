@@ -12,53 +12,52 @@ module Elasticsearch
 
     class ESManager
       def rolling_restart(timeout = 600, sleep_interval = 30, assume_yes = false)
-        highline = HighLine.new
         @members.each do |m|
           unless m == @leader
-            unless assume_yes || highline.agree('Continue with rolling restart of cluster? (y/n) ')
-              raise UserRequestedStop, "Stopping rolling restart at user request!".colorize(:red)
-            end
-            restart_node(m, timeout, sleep_interval)
+            restart_node(m, timeout, sleep_interval, assume_yes)
           end
         end
-        unless assume_yes || highline.agree("\nRestarting current cluster master, continue? (y/n) ")
+        unless assume_yes || @highline.agree("\nRestarting current cluster master, continue? (y/n) ")
           raise UserRequestedStop, "Stopping rolling restart at user request before restarting master node!".colorize(:red)
         end
-        restart_node(@leader, timeout, sleep_interval)
+        restart_node(@leader, timeout, sleep_interval, assume_yes)
       end
 
-      def restart_node(node_ip, timeout, sleep_interval)
-          puts "\nRestarting Elasticsearch on node: #{node_ip}"
-          # Pull the current node's state
-          n = @state.nodes.select { |i| i.ip == node_ip }[0]
+      def restart_node(node_ip, timeout, sleep_interval, assume_yes)
+        unless assume_yes || @highline.agree('Continue with rolling restart of cluster? (y/n) ')
+          raise UserRequestedStop, "Stopping rolling restart at user request!".colorize(:red)
+        end
+        puts "\nRestarting Elasticsearch on node: #{node_ip}"
+        # Pull the current node's state
+        n = @state.nodes.select { |i| i.ip == node_ip }[0]
 
-          raise ClusterSettingsUpdateError, "Could not disable shard routing prior to restarting node: #{node_ip}".colorize(:red) unless disable_routing
+        raise ClusterSettingsUpdateError, "Could not disable shard routing prior to restarting node: #{node_ip}".colorize(:red) unless disable_routing
 
-          Net::SSH.start(node_ip, ENV['USER']) do |ssh|
-            ssh.exec 'sudo service elasticsearch restart'
-          end
-          puts "Elasticsearch restarted on node: #{node_ip}"
+        Net::SSH.start(node_ip, ENV['USER']) do |ssh|
+          ssh.exec 'sudo service elasticsearch restart'
+        end
+        puts "Elasticsearch restarted on node: #{node_ip}"
 
-          begin
-            wait_for_node_available(node_ip, timeout, sleep_interval)
-            puts "Node back up!".colorize(:green)
-          rescue Timeout::Error
-            raise NodeAvailableTimeout, "Node did not become available after waiting #{timeout} seconds...".colorize(:red)
-          end
+        begin
+          wait_for_node_available(node_ip, timeout, sleep_interval)
+          puts "Node back up!".colorize(:green)
+        rescue Timeout::Error
+          raise NodeAvailableTimeout, "Node did not become available after waiting #{timeout} seconds...".colorize(:red)
+        end
 
-          # Make sure the cluster is willing to concurrently recover as many
-          # shards per node as this node happens to have.
-          raise ClusterSettingsUpdateError, "Could not update node_concurrent_recoveries prior to restarting node: #{node_ip}".colorize(:red) unless set_concurrent_recoveries(n.count_started_shards + 1)
+        # Make sure the cluster is willing to concurrently recover as many
+        # shards per node as this node happens to have.
+        raise ClusterSettingsUpdateError, "Could not update node_concurrent_recoveries prior to restarting node: #{node_ip}".colorize(:red) unless set_concurrent_recoveries(n.count_started_shards + 1)
 
-          raise ClusterSettingsUpdateError, "Could not re-enable shard routing following restart of node: #{node_ip}".colorize(:red) unless enable_routing
+        raise ClusterSettingsUpdateError, "Could not re-enable shard routing following restart of node: #{node_ip}".colorize(:red) unless enable_routing
 
-          begin
-            wait_for_stable(timeout, sleep_interval)
-            puts "Cluster stabilized!".colorize(:green)
-          rescue Timeout::Error
-            raise StabalizationTimeout, "Cluster not re-stabilize after waiting #{timeout} seconds...".colorize(:red)
-          end
-      end 
+        begin
+          wait_for_stable(timeout, sleep_interval)
+          puts "Cluster stabilized!".colorize(:green)
+        rescue Timeout::Error
+          raise StabalizationTimeout, "Cluster not re-stabilize after waiting #{timeout} seconds...".colorize(:red)
+        end
+      end
 
       protected
 

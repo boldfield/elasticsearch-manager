@@ -9,18 +9,34 @@ module Elasticsearch
     module CMD
       include Elasticsearch::Manager
 
+      def self.restart_node(opts)
+        node_ip = opts[:hostname]
+        timeout = opts[:timeout] || 600
+        assume_yes = opts[:assume_yes] || false
+        sleep_interval = opts[:sleep_interval] || 30
+
+        begin
+          manager = _manager(opts)
+          manager.restart_node(node_ip, timeout, sleep_interval, assume_yes)
+        rescue Elasticsearch::Manager::ApiError => e
+          puts e
+          return 3
+        rescue Exception => e
+          puts e
+          return 2
+        end
+        puts "restart of elasticsearch node #{node_ip} complete."
+        return 0
+      end
+
       def self.rolling_restart(opts)
-        manager = _manager(opts)
         # Check that the cluster is stable?
         begin
+          manager = _manager(opts)
           unless manager.cluster_stable?
             print_cluster_status(manager, 'The cluster is currently unstable! Not proceeding with rolling-restart')
             return 2
           end
-
-          print "Discovering cluster members..." if opts[:verbose]
-          manager.cluster_members!
-          print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
         rescue Elasticsearch::Manager::ApiError => e
           puts e
           return 3
@@ -45,7 +61,7 @@ module Elasticsearch
         puts 'Rolling restart complete.'
         return 0
       end
-  
+
       def self.list_nodes(opts)
         manager = _manager(opts)
         print "Discovering cluster members..." if opts[:verbose]
@@ -86,7 +102,7 @@ module Elasticsearch
         print "\rDiscovering cluster members... Done!\n" if opts[:verbose]
         puts "UNASSIGNED: #{manager.state.count_unassigned_shards}"
         manager.nodes.each do |node|
-          puts "#{node.ip}:\tSTARTED: #{node.count_started_shards}\t|\tINITIALIZING: #{node.count_initializing_shards}\t|\tRELOCATING: #{node.count_relocating_shards}"
+          puts "#{node.ip}:\tSTARTED: #{node.count_started_shards}\t|\tINITIALIZING: #{node.count_initializing_shards}\t\t|\tRELOCATING: #{node.count_relocating_shards}"
         end
         return 0
       end
