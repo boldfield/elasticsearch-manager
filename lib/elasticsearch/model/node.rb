@@ -13,6 +13,7 @@ module Elasticsearch
         property :transport_address
         property :host
         property :ip
+        property :uptime
         property :version
         property :build
         property :http_address

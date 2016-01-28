@@ -26,6 +26,7 @@ Available commands:
   status             -- Check the current state of the cluster (green/yellow/red)
   disable-routing    -- Disable shard routing allocation
   enable-routing     -- Enable shard routing allocation
+  uptime             -- Show uptime of the elasticsearch service across the cluster
 
 EOC
 
@@ -78,6 +79,8 @@ when 'disable-routing'
   ec = CMD.disable_routing(options)
 when 'enable-routing'
   ec = CMD.enable_routing(options)
+when 'uptime'
+  ec = CMD.uptime(options)
 else
   puts "Unknown command: #{cmd}\n"
   puts opt_parser

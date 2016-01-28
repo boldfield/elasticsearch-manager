@@ -29,6 +29,11 @@ module Elasticsearch
         get('/_cluster/settings')
       end
 
+      def cat_uptime
+        resp = get('/_cat/nodes', {'h' => 'ip,uptime'})
+        Hash[resp.split("\n").map { |l| l.split }]
+      end
+
       def node_concurrent_recoveries(num_recoveries = 2)
         data = {
           'transient' => {

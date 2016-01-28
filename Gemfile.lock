@@ -1,12 +1,11 @@
 PATH
   remote: .
   specs:
-    elasticsearch-manager (0.1.2)
+    elasticsearch-manager (0.1.3.pre.3)
       colorize (~> 0.7)
       highline (~> 1.7)
       json (~> 1.8)
       net-ssh (~> 2.9)
-      rack (~> 1.6)
       representable (~> 2.1)
       rest-client (~> 1.8)
 
@@ -17,27 +16,25 @@ GEM
     colorize (0.7.7)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
+    declarative (0.0.5)
+      uber (>= 0.0.15)
     diff-lcs (1.2.5)
     docile (1.1.5)
-    domain_name (0.5.24)
+    domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
-    highline (1.7.2)
+    highline (1.7.8)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
     json (1.8.2)
-    mime-types (2.5)
-    mini_portile (0.6.2)
+    mime-types (2.99)
     multi_json (1.11.0)
     net-ssh (2.9.2)
-    netrc (0.10.3)
-    nokogiri (1.6.6.2)
-      mini_portile (~> 0.6.0)
+    netrc (0.11.0)
     rack (1.6.0)
     rake (10.4.2)
-    representable (2.1.5)
-      multi_json
-      nokogiri
-      uber (~> 0.0.7)
+    representable (2.4.1)
+      declarative (~> 0.0.5)
+      uber (~> 0.0.15)
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
@@ -61,7 +58,7 @@ GEM
       json (~> 1.8)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.0)
-    uber (0.0.13)
+    uber (0.0.15)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.1)
@@ -75,6 +72,8 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.7)
   elasticsearch-manager!
+  multi_json
+  rack (~> 1.6)
   rake (~> 10.0)
   rspec (~> 3.2)
   simplecov (~> 0.9)

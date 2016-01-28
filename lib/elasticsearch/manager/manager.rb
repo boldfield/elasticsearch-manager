@@ -61,6 +61,22 @@ module Elasticsearch
         # Elasticache seems to return integer settings as strings when setting them...
         ret['transient']['cluster']['routing']['allocation']['node_concurrent_recoveries'] == num_recoveries.to_s
       end
+
+      private
+
+      def parse_uptime(ut)
+        t = ut[/[^smhd]+/].to_f
+        case ut[/[smhd]/]
+        when 's'
+          t
+        when 'm'
+          t * 60.0
+        when 'h'
+          t * 3600.0
+        when 'd'
+          t * 24.0 * 3600.0
+        end
+      end
     end
   end
 end

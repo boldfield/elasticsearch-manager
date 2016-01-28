@@ -115,6 +115,13 @@ module Elasticsearch
         return 0
       end
 
+      def self.uptime(opts)
+        manager = _manager(opts)
+        manager.cluster_members!
+        manager.list_node_uptime
+        return 0
+      end
+
       protected
       def self._manager(opts)
         ESManager.new(opts[:hostname], opts[:port])

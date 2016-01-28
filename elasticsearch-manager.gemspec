@@ -23,11 +23,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.2'
   spec.add_development_dependency 'simplecov', '~> 0.9'
   spec.add_development_dependency 'webmock', '~> 1.21'
+  spec.add_development_dependency 'rack', '~> 1.6'
   spec.add_dependency 'rest-client', '~> 1.8'
   spec.add_dependency 'representable', '~> 2.1'
   spec.add_dependency 'json', '~> 1.8'
   spec.add_dependency 'highline', '~> 1.7'
   spec.add_dependency 'net-ssh', '~> 2.9'
-  spec.add_dependency 'rack', '~> 1.6'
   spec.add_dependency 'colorize', '~> 0.7'
 end
